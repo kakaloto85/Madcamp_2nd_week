@@ -5,9 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Canvas;
+import android.icu.util.Output;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,6 +30,11 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class Fragment_Contact extends Fragment {
@@ -113,6 +120,34 @@ public class Fragment_Contact extends Fragment {
         for (int i = 0; i < name.size(); i++) {
             // 각 List의 값들을 data 객체에 set 해줍니다.
             phoneBooks.add(new PhoneBook(((String) name.get(i)), (String) number.get(i)));
+        }
+
+        try{
+
+            URL url = new URL("http://192.249.19.243:0380/api/contacts");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            for (int i = 0; i < phoneBooks.size(); i++){
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("name", phoneBooks.get(i).getName());
+                jsonObject.put("phone", phoneBooks.get(i).getPhone());
+                Log.d("TAG", jsonObject.toString());
+                OutputStream outputStream = connection.getOutputStream();
+                //OutputStreamWriter outputStream = new OutputStreamWriter(connection.getOutputStream());
+                Log.d("TAG", jsonObject.toString());
+                outputStream.write(jsonObject.toString().getBytes("UTF-8"));
+                Log.d("TAG", "OK");
+                outputStream.flush();
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
