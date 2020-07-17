@@ -3,9 +3,11 @@ package com.example.tab_application;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,8 +41,9 @@ public class Fragment_Contact extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Get data from json
-        phoneBooks = Parser(getJsonString());
+        //phoneBooks = Parser(getJsonString());
         //phoneBooks = PhoneBook_Loader.getData(getActivity());
+        getData();
     }
 
     private String getJsonString()
@@ -61,6 +64,56 @@ public class Fragment_Contact extends Fragment {
             ex.printStackTrace();
         }
         return json;
+    }
+
+    private void getData () {
+        ArrayList name = new ArrayList();
+        ArrayList number = new ArrayList();
+
+        String [] arrProjection = {
+                ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.DISPLAY_NAME };
+        String [] arrPhoneProjection = {
+                ContactsContract.CommonDataKinds.Phone.NUMBER };
+
+
+        // get user list
+        Cursor clsCursor = getActivity().getContentResolver().query (
+                ContactsContract.Contacts.CONTENT_URI, arrProjection,
+                ContactsContract.Contacts.HAS_PHONE_NUMBER + "=1" ,
+                null, null
+        );
+
+
+        //전화번호가 있는 사람들의 이름과 전화번호를 쿼리를 이용해 가져옴
+        while( clsCursor.moveToNext() ) {
+            String strContactId = clsCursor.getString( 0 );
+
+            name.add(clsCursor.getString( 1 ));
+
+            // phone number
+            Cursor clsPhoneCursor = getActivity().getContentResolver().query (
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    arrPhoneProjection,
+                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + strContactId,
+                    null, null);
+
+            while( clsPhoneCursor.moveToNext() )
+            {
+                number.add(clsPhoneCursor.getString( 0 ));
+
+            }
+            clsPhoneCursor.close();
+
+
+        }
+        clsCursor.close( );
+
+        //data 객체에 값 채우기
+        for (int i = 0; i < name.size(); i++) {
+            // 각 List의 값들을 data 객체에 set 해줍니다.
+            phoneBooks.add(new PhoneBook(((String) name.get(i)), (String) number.get(i)));
+        }
     }
 
     @Override
