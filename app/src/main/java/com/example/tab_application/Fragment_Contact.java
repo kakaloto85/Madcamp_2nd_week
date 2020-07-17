@@ -3,9 +3,13 @@ package com.example.tab_application;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Canvas;
+import android.icu.util.Output;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -24,8 +28,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class Fragment_Contact extends Fragment {
@@ -39,8 +50,9 @@ public class Fragment_Contact extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Get data from json
-        phoneBooks = Parser(getJsonString());
+        //phoneBooks = Parser(getJsonString());
         //phoneBooks = PhoneBook_Loader.getData(getActivity());
+        getData();
     }
 
     private String getJsonString()
@@ -61,6 +73,113 @@ public class Fragment_Contact extends Fragment {
             ex.printStackTrace();
         }
         return json;
+    }
+
+    private void getData () {
+        ArrayList name = new ArrayList();
+        ArrayList number = new ArrayList();
+
+        String [] arrProjection = {
+                ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.DISPLAY_NAME };
+        String [] arrPhoneProjection = {
+                ContactsContract.CommonDataKinds.Phone.NUMBER };
+
+
+        // get user list
+        Cursor clsCursor = getActivity().getContentResolver().query (
+                ContactsContract.Contacts.CONTENT_URI, arrProjection,
+                ContactsContract.Contacts.HAS_PHONE_NUMBER + "=1" ,
+                null, null
+        );
+
+
+        //전화번호가 있는 사람들의 이름과 전화번호를 쿼리를 이용해 가져옴
+        while( clsCursor.moveToNext() ) {
+            String strContactId = clsCursor.getString( 0 );
+
+            name.add(clsCursor.getString( 1 ));
+
+            // phone number
+            Cursor clsPhoneCursor = getActivity().getContentResolver().query (
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    arrPhoneProjection,
+                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + strContactId,
+                    null, null);
+
+            while( clsPhoneCursor.moveToNext() )
+            {
+                number.add(clsPhoneCursor.getString( 0 ));
+
+            }
+            clsPhoneCursor.close();
+
+
+        }
+        clsCursor.close( );
+
+        //data 객체에 값 채우기
+        for (int i = 0; i < name.size(); i++) {
+            // 각 List의 값들을 data 객체에 set 해줍니다.
+            phoneBooks.add(new PhoneBook(((String) name.get(i)), (String) number.get(i)));
+        }
+        new Thread() {
+            public void run() {
+                try{
+
+
+
+                    for (int i = 0; i < phoneBooks.size(); i++) {
+                        URL url = new URL("http://192.249.19.243:0380/api/contacts");
+                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        connection.setRequestMethod("POST");
+                        connection.setRequestProperty("Content-Type", "application/json");
+                        connection.setDoOutput(true);
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("name", phoneBooks.get(i).getName());
+                        jsonObject.put("phone", phoneBooks.get(i).getPhone());
+                        Log.d("TAG", jsonObject.toString());
+                        OutputStream outputStream = connection.getOutputStream();
+                        //OutputStreamWriter outputStream = new OutputStreamWriter(connection.getOutputStream());
+                        Log.d("TAG", jsonObject.toString());
+                        outputStream.write(jsonObject.toString().getBytes("UTF-8"));
+                        Log.d("TAG", "OK");
+                        outputStream.flush();
+
+                        String result;
+
+                        InputStreamReader tmp = new InputStreamReader(connection.getInputStream(), "UTF-8");
+                        BufferedReader reader = new BufferedReader(tmp);
+                        StringBuilder builder = new StringBuilder();
+                        String str;
+                        while ((str = reader.readLine()) != null) {
+                            builder.append(str + "\n");
+                        }
+                        result = builder.toString();
+                        Log.d("TAG", result);
+
+                    } }catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+
+
+
+    }
+    public static String convertStreamToString(InputStream is) throws Exception {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line + "\n");
+        }
+        is.close();
+        return sb.toString();
     }
 
     @Override

@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera"
+        android:required="true" />
 
     <application
         android:name=".prefer_arr"
@@ -29,6 +33,8 @@
 
         <activity android:name=".AddPhoneBook"></activity>
         <activity android:name=".AddSchedule"></activity>
+        <activity android:name=".camera" />
+
     </application>
 
     <uses-permission android:name="android.permission.READ_CONTACTS"/>

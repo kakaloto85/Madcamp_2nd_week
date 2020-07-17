@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -25,7 +27,7 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 
 
-public class Fragment_Gallery extends Fragment {
+public class Fragment_Gallery extends Fragment  implements View.OnClickListener{
 
     String[] permission_list = {Manifest.permission.READ_EXTERNAL_STORAGE};
     private Context mContext;
@@ -60,10 +62,24 @@ public class Fragment_Gallery extends Fragment {
                 startActivityForResult(i, 1);
             }
         });
+        Button btn_camera = (Button) view.findViewById(R.id.btn_camera);
+        btn_camera.setOnClickListener(this);
 
         return view;
     }
-
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_camera:
+                capture();
+        }
+    }
+    public void capture() {
+//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
+//        startActivityForResult(intent,101);
+        Intent intent = new Intent(getActivity(), camera.class);
+        startActivity(intent);
+    }
     /* TAB MOVE DOES NOT CALl
      * LEAVE APP AND RETURN THEN, CALL THIS */
     @Override

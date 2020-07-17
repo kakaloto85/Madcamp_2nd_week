@@ -20,7 +20,8 @@ public class checkpermission extends AppCompatActivity {
     String[] PERMISSIONS = {
             android.Manifest.permission.READ_CONTACTS,
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
-            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.CAMERA
     };
     public boolean hasPermissions(Context context, String... permissions) {
         if (context != null && permissions != null) {

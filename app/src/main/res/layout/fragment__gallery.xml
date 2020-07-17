@@ -29,4 +29,18 @@
         android:scaleType="fitCenter"
         android:src="@drawable/star_btn_default_2"
         app:backgroundTint="#c76476"></com.google.android.material.floatingactionbutton.FloatingActionButton>
+    <Button
+        android:layout_gravity="bottom|left"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="20dp"
+
+        android:id="@+id/btn_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dip"
+        android:background="#c76476"
+        android:textColor="#FFFFFF"
+        android:text="camera">
+    </Button>
+
 </FrameLayout>
